@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dota 2 — Hero Field Guide</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050709;
+  --hero-color:#FFD700;
+  --hero-color-dim: rgba(255,215,0,0.15);
+  --hero-color-glow: rgba(255,215,0,0.4);
+  --hero-bg: #060C1A;
+  --text:#F0EBE0;
+  --text-dim:#7A8899;
+  --border:rgba(255,255,255,0.06);
+  --card-bg:rgba(10,14,22,0.85);
+  --transition-speed:0.7s;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Barlow Condensed',sans-serif;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+/* ─── DOTA 2 CURSOR ─── */
+body, *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFE066'/%3E%3Cstop offset='50%25' stop-color='%23C89020'/%3E%3Cstop offset='100%25' stop-color='%238B5E00'/%3E%3C/linearGradient%3E%3ClinearGradient id='g2' x1='0%25' y1='0%25' x2='60%25' y2='60%25'%3E%3Cstop offset='0%25' stop-color='%23FFF3A0' stop-opacity='0.9'/%3E%3Cstop offset='100%25' stop-color='%23FFD040' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cfilter id='sh'%3E%3CfeDropShadow dx='1' dy='1' stdDeviation='1' flood-color='%23000' flood-opacity='0.6'/%3E%3C/filter%3E%3C/defs%3E%3Cpolygon points='2,2 2,24 7,19 11,28 14,27 10,18 17,18' fill='url(%23g1)' stroke='%232A1500' stroke-width='1.2' stroke-linejoin='round' filter='url(%23sh)'/%3E%3Cpolygon points='4,4 4,18 7,15 9,20 11,19.5 8.5,14.5 13,14.5' fill='url(%23g2)' opacity='0.7'/%3E%3C/svg%3E") 2 2, auto!important}
+
+
+/* ─── HERO SELECTOR BAR ─── */
+#hero-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:90px;
+  background:rgba(5,7,9,0.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 30px;
+  gap:6px;
+}
+.bar-logo{
+  font-family:'Cinzel',serif;
+  font-size:13px;font-weight:900;
+  letter-spacing:3px;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  white-space:nowrap;
+  margin-right:20px;
+  flex-shrink:0;
+}
+.bar-logo span{color:var(--hero-color);transition:color 0.5s}
+.hero-btn{
+  position:relative;
+  width:64px;height:64px;
+  border-radius:4px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:none;
+  flex-shrink:0;
+  transition:border-color 0.3s, transform 0.2s;
+}
+.hero-btn img{
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:top center;
+  filter:saturate(0.6) brightness(0.7);
+  transition:filter 0.3s, transform 0.4s;
+}
+.hero-btn:hover img{filter:saturate(1) brightness(1);transform:scale(1.1)}
+.hero-btn.active{border-color:var(--hero-color);box-shadow:0 0 16px var(--hero-color-glow)}
+.hero-btn.active img{filter:saturate(1) brightness(1)}
+.hero-btn-name{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:3px 4px;
+  background:linear-gradient(transparent, rgba(0,0,0,0.85));
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;letter-spacing:1px;text-align:center;
+  color:rgba(255,255,255,0.7);
+  text-transform:uppercase;
+}
+.hero-btn.active .hero-btn-name{color:var(--hero-color)}
+.hero-btn::after{
+  content:'';position:absolute;inset:0;
+  background:var(--hero-color);opacity:0;
+  transition:opacity 0.3s;
+}
+.hero-btn.active::after{opacity:0.08}
+
+/* ─── MAIN LAYOUT ─── */
+#app{margin-top:90px;position:relative;min-height:calc(100vh - 90px)}
+
+/* ─── HERO SCENE ─── */
+.hero-scene{
+  display:none;
+  position:relative;
+  min-height:calc(100vh - 90px);
+}
+.hero-scene.active{display:block}
+
+/* HERO BG */
+.scene-bg{
+  position:fixed;top:90px;left:0;right:0;bottom:0;
+  z-index:0;overflow:hidden;
+  pointer-events:none;
+}
+.scene-bg-img{
+  position:absolute;
+  right:-5%;top:-5%;
+  width:65%;height:110%;
+  object-fit:cover;
+  object-position:top center;
+  opacity:0;
+  filter:saturate(0.8);
+  transform:scale(1.05);
+  transition:opacity 0.8s ease, transform 1.2s ease;
+  mask-image:linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 40%, transparent 75%);
+  -webkit-mask-image:linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 40%, transparent 75%);
+}
+.scene-bg-img.visible{opacity:1;transform:scale(1)}
+.scene-bg-color{
+  position:absolute;inset:0;
+  opacity:0;
+  transition:opacity 0.8s ease;
+}
+.scene-bg-color.visible{opacity:1}
+.scene-bg-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 80% at 20% 50%, transparent 40%, rgba(5,7,9,0.7) 100%);
+}
+
+/* CONTENT */
+.scene-content{
+  position:relative;z-index:10;
+  max-width:820px;
+  padding:50px 40px 80px;
+  opacity:0;
+  transform:translateX(-20px);
+  transition:opacity 0.6s ease, transform 0.6s ease;
+}
+.scene-content.visible{opacity:1;transform:translateX(0)}
+
+/* HERO TITLE BLOCK */
+.hero-intro{margin-bottom:36px}
+.hero-eyebrow{
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;letter-spacing:4px;
+  color:var(--hero-color);
+  text-transform:uppercase;
+  margin-bottom:8px;
+  opacity:0.8;
+}
+.hero-name{
+  font-family:'Cinzel',serif;
+  font-size:clamp(52px,7vw,88px);
+  font-weight:900;
+  line-height:0.9;
+  text-transform:uppercase;
+  letter-spacing:-1px;
+  color:var(--text);
+  text-shadow:0 0 80px var(--hero-color-glow);
+}
+.hero-tagline{
+  margin-top:14px;
+  font-size:17px;font-weight:300;font-style:italic;
+  color:var(--text-dim);
+  line-height:1.4;
+  max-width:480px;
+}
+.hero-badges{
+  display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;
+}
+.hbadge{
+  padding:4px 14px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;
+  border-radius:2px;
+  border:1px solid var(--hero-color);
+  color:var(--hero-color);
+  background:var(--hero-color-dim);
+}
+.hbadge.diff-easy{border-color:#40b858;color:#40b858;background:rgba(64,184,88,0.12)}
+.hbadge.diff-med{border-color:#f0c040;color:#f0c040;background:rgba(240,192,64,0.12)}
+
+/* ─── TABS ─── */
+.tabs{
+  display:flex;gap:2px;
+  margin-bottom:0;
+  border-bottom:1px solid var(--border);
+  padding-bottom:0;
+}
+.tab{
+  padding:10px 20px;
+  font-family:'Cinzel',serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-dim);
+  cursor:none;
+  position:relative;
+  transition:color 0.2s;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--hero-color);border-bottom-color:var(--hero-color)}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ─── CARDS ─── */
+.cards-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:16px;
+}
+.cards-grid.single{grid-template-columns:1fr}
+.cards-grid.triple{grid-template-columns:1fr 1fr 1fr}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:20px 22px;
+  position:relative;
+  overflow:hidden;
+  backdrop-filter:blur(12px);
+}
+.card::before{
+  content:'';
+  position:absolute;top:0;left:0;
+  width:2px;height:100%;
+  background:var(--card-accent, var(--hero-color));
+}
+.card::after{
+  content:'';
+  position:absolute;top:0;right:0;bottom:0;
+  width:40%;
+  background:linear-gradient(to left, rgba(255,255,255,0.015), transparent);
+  pointer-events:none;
+}
+.card-type{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--card-accent, var(--hero-color));
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.card-type::after{content:'';flex:1;height:1px;background:var(--card-accent, var(--hero-color));opacity:0.2}
+.card p{
+  font-size:14px;line-height:1.7;
+  color:rgba(240,235,224,0.85);
+  font-weight:300;
+}
+
+/* BUILD ITEMS */
+.phase{margin-bottom:14px}
+.phase-name{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:6px;
+}
+.items{display:flex;flex-wrap:wrap;gap:5px}
+.item{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px 3px 4px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;
+  border-radius:3px;
+  background:var(--item-bg, rgba(255,215,0,0.1));
+  border:1px solid var(--item-border, rgba(255,215,0,0.3));
+  color:var(--item-color, var(--hero-color));
+  white-space:nowrap;
+  transition:background 0.2s, transform 0.15s;
+}
+.item:hover{background:var(--item-hover-bg, rgba(255,215,0,0.2));transform:translateY(-1px)}
+.item img{
+  width:32px;height:22px;
+  object-fit:cover;
+  border-radius:2px;
+  display:block;
+  flex-shrink:0;
+  image-rendering:crisp-edges;
+}
+.item img[src=""]{display:none}
+.build-note{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  font-size:12px;line-height:1.6;
+  color:var(--text-dim);font-style:italic;
+}
+
+/* CARD ACCENT VARIANTS */
+.card.phys{--card-accent:#F09840;--item-bg:rgba(240,152,64,0.1);--item-border:rgba(240,152,64,0.3);--item-color:#F09840;--item-hover-bg:rgba(240,152,64,0.2)}
+.card.magic{--card-accent:#8060F0;--item-bg:rgba(128,96,240,0.1);--item-border:rgba(128,96,240,0.3);--item-color:#A080FF;--item-hover-bg:rgba(128,96,240,0.2)}
+.card.farm{--card-accent:#40C880;--item-bg:rgba(64,200,128,0.1);--item-border:rgba(64,200,128,0.3);--item-color:#40C880;--item-hover-bg:rgba(64,200,128,0.2)}
+.card.def-phys{--card-accent:#E07820;--item-bg:rgba(224,120,32,0.1);--item-border:rgba(224,120,32,0.3);--item-color:#E09040;--item-hover-bg:rgba(224,120,32,0.2)}
+.card.def-magic{--card-accent:#5030B0;--item-bg:rgba(80,48,176,0.1);--item-border:rgba(80,48,176,0.3);--item-color:#7050D0;--item-hover-bg:rgba(80,48,176,0.2)}
+
+/* TIP */
+.tip{
+  display:flex;gap:10px;
+  padding:10px 14px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-left:2px solid var(--hero-color);
+  border-radius:0 4px 4px 0;
+  margin-top:12px;
+  font-size:12.5px;line-height:1.6;
+  color:var(--text-dim);
+}
+.tip-mark{color:var(--hero-color);flex-shrink:0;font-weight:700}
+
+/* DIVIDER */
+.section-divider{
+  margin:20px 0 0;
+  height:1px;
+  background:linear-gradient(90deg, var(--hero-color), transparent);
+  opacity:0.2;
+}
+
+/* ─── SCROLL INDICATOR ─── */
+.scroll-hint{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  z-index:50;
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:3px;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0.5;
+  animation:bounce 2s ease-in-out infinite;
+}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
+.scroll-arrow{width:20px;height:20px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg)}
+
+/* ─── LOADING OVERLAY ─── */
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+}
+.loader-logo{
+  font-family:'Cinzel',serif;
+  font-size:32px;font-weight:900;
+  letter-spacing:6px;
+  color:var(--text);
+  text-transform:uppercase;
+}
+.loader-logo span{color:var(--hero-color)}
+.loader-bar-wrap{width:200px;height:1px;background:rgba(255,255,255,0.1)}
+.loader-bar{height:100%;width:0;background:var(--hero-color);transition:width 0.05s}
+.loader-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text-dim)}
+
+/* ─── PARALLAX CANVAS ─── */
+#particle-canvas{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;z-index:1;
+  opacity:0.4;
+}
+
+/* ─── MOBILE ─── */
+@media(max-width:900px){
+  .scene-bg-img{width:100%;opacity:0.15!important;right:0}
+  .scene-content{padding:30px 20px 60px;max-width:100%}
+  .cards-grid,.cards-grid.triple{grid-template-columns:1fr}
+  .hero-name{font-size:44px}
+}
+@media(max-width:600px){
+  #hero-bar{overflow-x:auto;padding:0 16px;gap:4px}
+  .hero-btn{width:52px;height:52px}
+  .bar-logo{font-size:10px;margin-right:10px}
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--hero-color)}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">Dota 2 <span>Field Guide</span></div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="lbar"></div></div>
+  <div class="loader-sub">Loading hero data...</div>
+</div>
+
+
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- HERO SELECTOR BAR -->
+<div id="hero-bar">
+  <div class="bar-logo">⚔ Dota 2 <span id="bar-hero-name">Field Guide</span></div>
+  <div class="hero-btn active" data-hero="zeus" onclick="switchHero('zeus')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/zuus.png" alt="Zeus" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Zeus</div>
+  </div>
+  <div class="hero-btn" data-hero="viper" onclick="switchHero('viper')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/viper.png" alt="Viper" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Viper</div>
+  </div>
+  <div class="hero-btn" data-hero="axe" onclick="switchHero('axe')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/axe.png" alt="Axe" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Axe</div>
+  </div>
+  <div class="hero-btn" data-hero="jugg" onclick="switchHero('jugg')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/juggernaut.png" alt="Juggernaut" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Jugg</div>
+  </div>
+  <div class="hero-btn" data-hero="dk" onclick="switchHero('dk')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/dragon_knight.png" alt="Dragon Knight" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">D. Knight</div>
+  </div>
+  <div class="hero-btn" data-hero="sniper" onclick="switchHero('sniper')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/sniper.png" alt="Sniper" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Sniper</div>
+  </div>
+  <div class="hero-btn" data-hero="lina" onclick="switchHero('lina')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/lina.png" alt="Lina" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Lina</div>
+  </div>
+  <div class="hero-btn" data-hero="lion" onclick="switchHero('lion')">
+    <img src="https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/lion.png" alt="Lion" onerror="this.style.opacity='0'">
+    <div class="hero-btn-name">Lion</div>
+  </div>
+</div>
+
+<!-- SHARED BACKGROUND (changes per hero) -->
+<div class="scene-bg" id="scene-bg">
+  <div class="scene-bg-color" id="scene-bg-color"></div>
+  <img class="scene-bg-img" id="scene-bg-img" src="" alt="">
+  <div class="scene-bg-vignette"></div>
+</div>
+
+<!-- APP CONTAINER -->
+<div id="app"></div>
+
+<div class="scroll-hint" id="scrollHint">
+  <span>Scroll</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<script>
+// ═══════════════════ HERO DATA ═══════════════════
+const HEROES = {
+  zeus: {
+    name: 'Zeus',
+    title: 'Lord of Heaven',
+    role: 'Mid Lane · Nuker · Global Presence',
+    tagline: 'Glass cannon with a global kill button. Farm fast, nuke hard, never stop pressing R.',
+    diff: 'Easy',
+    color: '#FFD700',
+    colorDim: 'rgba(255,215,0,0.12)',
+    colorGlow: 'rgba(255,215,0,0.35)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 30%, rgba(255,180,0,0.08) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 20% 80%, rgba(20,40,80,0.6) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/zuus.png',
+    strategy: `Stay mid and spam Arc Lightning on creeps and the enemy hero simultaneously — it costs almost nothing and the constant chip damage forces them off the lane. Control runes with your Bottle to sustain mana. Never stop harassing. At level 6, cast your ultimate every time an enemy anywhere on the map is below 40% HP — you'll get assist gold without leaving your lane. Mid game your job is to blow your full combo (Lightning Bolt → Arc Lightning → Static Field → Ult) on the highest-priority target in every fight, then ult to clean up anyone who runs. You are a glass cannon — always stand behind your team, never initiate, and position near the back of fights.`,
+    tip: 'Static Field deals a percentage of the enemy\'s CURRENT HP — cast it first before your other spells to get maximum value from it.',
+    farm: `Arc Lightning is a chain that bounces to nearby units — use it to clear entire creep waves in seconds once you have enough spell damage. Last hit whatever you can normally early on but prioritize Clarity potions to keep spamming. Bottle + rune control is critical; grabbing a Power Rune at 2 minutes can let you kill the enemy mid on the spot and take the first tower.`,
+    farmTip: 'Grab every rune you can. A Double Damage rune on Zeus is somewhat wasted — prioritize Arcane Rune (free spells) and Power Rune kills instead.',
+    physBuild: {
+      label:'Physical Build (Meme / Stomp Only)',
+      phases:[
+        {name:'Core',items:['Phase Boots','Dragon Lance','Hurricane Pike']},
+        {name:'Damage',items:['Daedalus','Assault Cuirass']}
+      ],
+      note:'Zeus has decent base damage and attack range but no attack steroids. This is a fun build when stomping — not a serious climb strategy. Magic build is always superior.'
+    },
+    magicBuild: {
+      label:'Magic Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Null Talisman x2','Clarity x2','Faerie Fire']},
+        {name:'Early (0–15min)',items:['Arcane Boots','Veil of Discord']},
+        {name:'Mid (15–30min)',items:['Bloodstone','Aghanim\'s Scepter']},
+        {name:'Late (30+min)',items:['Refresher Orb','Eul\'s Scepter','Octarine Core']}
+      ],
+      note:'Veil amplifies your damage by 25%. Bloodstone gives infinite sustain. Aghs reveals the map on ult. Refresher = double ult = team wipe.'
+    },
+    defPhys: {
+      items:['Ghost Scepter','Eul\'s Scepter','Shiva\'s Guard','Bloodstone'],
+      note:'Ghost Scepter makes you immune to physical attacks for 4 seconds — use it when a carry dives you. Eul\'s lets you dodge key spells and buy time. Shiva\'s gives armor and an AoE slow. Build one early if carries are consistently killing you.',
+      tip:'If an enemy Phantom Assassin or Sniper is fed, rush Ghost Scepter immediately after Arcane Boots. It\'s only 1500 gold and saves your life.'
+    },
+    defMagic: {
+      items:['Linken\'s Sphere','Manta Style','Hood of Defiance','Eul\'s Scepter'],
+      note:'Linken\'s blocks one targeted spell every 14 seconds — essential if an enemy Lina or Lion keeps bursting you. Eul\'s lets you dodge channeled abilities. If the whole enemy team is magic heavy, a Pipe of Insight from your support helps the whole team.'
+    }
+  },
+  viper: {
+    name: 'Viper',
+    title: 'Netherdrake',
+    role: 'Mid Lane · Carry · Lane Bully',
+    tagline: 'A war of attrition you always win. Poison everything, kite forever, close out games.',
+    diff: 'Easy',
+    color: '#A8FF3E',
+    colorDim: 'rgba(168,255,62,0.1)',
+    colorGlow: 'rgba(168,255,62,0.3)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(80,160,20,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(30,10,50,0.6) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/viper.png',
+    strategy: `Your laning strategy is simple: stand near the enemy and auto-attack constantly. Corrosive Skin passively slows and damages anyone who hits you, and your attacks stack Nethertoxin which deals increasing damage based on how many stacks are on the target. You win every trading war. Use Poison Attack actively on cooldown to keep them slowed and chunked. Deny your own creeps when below 50% HP to starve the enemy of experience. At level 6 you can Viper Strike anyone who tries to fight you — it deals massive damage and slows them to a crawl. In teamfights, target the enemy carry. Your slow stacks make them completely useless.`,
+    tip: 'Nethertoxin damage scales exponentially with stacks. Don\'t just poke — commit to standing on top of them and stacking it fully before retreating.',
+    farm: `Viper is a pure right-click farmer. Last hit every creep you can — your attack animation is clean and consistent. Use Poison Attack to secure last hits on low HP creeps from range when you might miss them. The goal is 55-65 last hits by 10 minutes in the mid lane. After taking mid tower, Viper farms jungle camps efficiently with Poison Attack making neutrals easy to kill 1v1.`,
+    farmTip: 'Don\'t fight the enemy mid unnecessarily before level 3. Focus on last hits for the first two minutes then start aggressively trading once Corrosive Skin has 3 levels.',
+    physBuild: {
+      label:'Physical Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Null Talisman x2','Quelling Blade','Faerie Fire']},
+        {name:'Early (0–15min)',items:['Phase Boots','Witch Blade']},
+        {name:'Mid (15–30min)',items:['Dragon Lance','Kaya and Sange']},
+        {name:'Late (30+min)',items:['Hurricane Pike','Eye of Skadi','Butterfly']}
+      ],
+      note:'Witch Blade adds poison proc on top of your existing poison. Dragon Lance + Pike extend your range so enemies cannot reach you. Skadi roots on attack — nobody escapes.'
+    },
+    magicBuild: {
+      label:'Magic Build (vs Tanky Physical Teams)',
+      phases:[
+        {name:'Core',items:['Phase Boots','Kaya and Sange','Aghanim\'s Scepter']},
+        {name:'Damage',items:['Ethereal Blade','Shiva\'s Guard']}
+      ],
+      note:'Aghs makes Viper Strike a global cast. Ethereal Blade amplifies magic damage by 40% on the target, massively boosting Nethertoxin and Viper Strike. Run this when enemies have 20+ armor.'
+    },
+    defPhys: {
+      items:['Butterfly','Blade Mail','Crimson Guard'],
+      note:'Butterfly gives 35% evasion — a right-click carry misses more than 1 in 3 attacks against you. Blade Mail reflects physical damage during its duration. Rush these over Hurricane Pike if a fed carry is targeting you every fight.',
+      tip:'Viper\'s Corrosive Skin already reduces enemy attack speed — combined with Butterfly evasion, physical carries become nearly useless against you.'
+    },
+    defMagic: {
+      items:['Kaya and Sange (earlier)','Hood of Defiance','Linken\'s Sphere','Manta Style'],
+      note:'Viper naturally has decent magic resistance but burst mages can still kill you. Kaya and Sange gives status resistance to reduce the duration of stuns. Hood → Pipe if a Zeus or Lina is completely out of control. Linken\'s stops targeted spells from one-shotting you.'
+    }
+  },
+  axe: {
+    name: 'Axe',
+    title: 'Mogul Khan',
+    role: 'Offlane · Initiator · Disruptor',
+    tagline: 'Blink in, force them to hit you, spin, execute. Repeat until enemies disconnect.',
+    diff: 'Easy',
+    color: '#CC2200',
+    colorDim: 'rgba(204,34,0,0.12)',
+    colorGlow: 'rgba(204,34,0,0.4)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(160,30,10,0.15) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(20,5,5,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/axe.png',
+    strategy: `The entire Axe game plan is built around Berserker's Call — a taunt that forces all nearby enemies to attack you while Counter Helix randomly spins for heavy AoE physical damage every 4th attack received. You WANT to be hit. Lane by aggressively walking into enemy creeps to trigger Counter Helix and zone the enemy carry off farm. At 6, Blink Dagger is your defining purchase — it lets you jump into the center of enemy groups, cast Call, and let Counter Helix shred everyone. Culling Blade executes enemies below a flat HP threshold and gives your entire team a 30% movement speed burst when it kills.`,
+    tip: 'Never cast Culling Blade too early. Wait until the enemy is at or below the execute threshold, then cast it to guarantee the kill and give your team the speed boost.',
+    farm: `In the offlane your goal isn't max last hits — it's disrupting the enemy carry's farm and getting just enough gold for Blink Dagger. Use Battle Hunger to pressure enemies. Walk into the enemy creep wave and let Counter Helix trigger — it deals damage to creeps and heroes simultaneously. Once you have Blink Dagger, Axe is an excellent jungler. Blink into stacked camps, cast Call, let Counter Helix clear everything in seconds.`,
+    farmTip: 'Prioritize Blink Dagger above everything. No other item transforms Axe\'s game impact as dramatically — without it you\'re chasing enemies on foot which almost never works.',
+    physBuild: {
+      label:'Physical Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Stout Shield','Tango x2','Quelling Blade','Clarity x1']},
+        {name:'Core (Get ASAP)',items:['Phase Boots','Blink Dagger']},
+        {name:'Mid (15–30min)',items:['Vanguard','Blade Mail','Crimson Guard']},
+        {name:'Late (30+min)',items:['Heart of Tarrasque','Assault Cuirass']}
+      ],
+      note:'Blade Mail reflects damage back to attackers during Call — enemies literally hurt themselves attacking you. Crimson Guard adds team-wide physical damage block. Heart makes you nearly unkillable.'
+    },
+    magicBuild: {
+      label:'Magic Build (Counter Helix Damage Focus)',
+      phases:[
+        {name:'Core',items:['Blink Dagger','Blade Mail','Shiva\'s Guard']},
+        {name:'Power Items',items:['Aghanim\'s Scepter','Octarine Core']}
+      ],
+      note:'Aghs on Axe makes Culling Blade reset on every kill — chain execute multiple heroes in one fight. Shiva\'s Guard slows enemies into your Call. Octarine reduces all cooldowns. Run this against tanky armor-stacked teams.'
+    },
+    defPhys: {
+      items:['Vanguard (earlier)','Crimson Guard','Blade Mail','Assault Cuirass'],
+      note:'When facing 4+ physical damage heroes, rush Vanguard and Crimson Guard before Blade Mail. The 70 damage block from Crimson Guard applies to your entire team. Assault Cuirass gives you armor AND reduces enemies\' armor — double benefit in physical-heavy games.',
+      tip:'Your Call already forces enemies to hit you — Blade Mail + high armor means physical carries are essentially killing themselves during your Call.'
+    },
+    defMagic: {
+      items:['Hood of Defiance','Pipe of Insight','Black King Bar','Lotus Orb'],
+      note:'Magic damage is Axe\'s primary weakness — he has no natural magic resistance. Hood of Defiance is the first purchase when magic is dominating. Upgrade to Pipe for a team-wide magic shield. Black King Bar makes you spell immune during your initiation so you can Blink → Call without being interrupted.'
+    }
+  },
+  jugg: {
+    name: 'Juggernaut',
+    title: 'Yurnero',
+    role: 'Safelane Carry · Skirmisher',
+    tagline: 'Spin to avoid death, farm to full build, Omnislash to delete the enemy carry.',
+    diff: 'Easy',
+    color: '#00C9A7',
+    colorDim: 'rgba(0,201,167,0.1)',
+    colorGlow: 'rgba(0,201,167,0.35)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(0,150,120,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(5,20,15,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/juggernaut.png',
+    strategy: `Juggernaut is farm-dependent — your early game job is to survive, last hit, and avoid dying. Blade Fury makes you completely spell-immune for 5 seconds while dealing decent damage — use it when enemies try to burst you, when channeling through a stun, or to escape ganks. Place Healing Ward behind your team during fights — it heals everyone around it. Omnislash at level 6 gives you a kill threat on anyone below 50% HP. In teamfights Omnislash the most dangerous enemy carry — you'll stun lock them and deal enormous damage.`,
+    tip: 'Blade Fury can be cast on yourself while being targeted by enemy spells to dodge them — learn which spells it blocks (most targeted) vs which it doesn\'t (AoE).',
+    farm: `Juggernaut has a clean attack animation — focus on last hitting every creep. Quelling Blade from the start increases your last hit damage significantly. Target 60-70 last hits by 10 minutes in the safelane. After Battlefury, rotate between lane waves and jungle camps constantly. Your farming speed goes from average to one of the fastest in the game.`,
+    farmTip: 'Never stop farming between fights. Most Juggernaut losses happen because players fight every skirmish instead of farming during downtime.',
+    physBuild: {
+      label:'Physical Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Quelling Blade','Slippers x2','Faerie Fire']},
+        {name:'Core (0–20min)',items:['Phase Boots','Battlefury']},
+        {name:'Mid (20–35min)',items:['Diffusal Blade','Butterfly']},
+        {name:'Late (35+min)',items:['Daedalus','Abyssal Blade']}
+      ],
+      note:'Battlefury for farm speed and cleave. Diffusal slows and burns mana during Omnislash. Butterfly gives evasion. Daedalus crits while Omnislash bounces — one-shot potential is massive.'
+    },
+    magicBuild: {
+      label:'Magic Build (Omnislash Amplification)',
+      phases:[
+        {name:'Core',items:['Phase Boots','Aghanim\'s Scepter','Kaya']},
+        {name:'Power Items',items:['Refresher Orb','Bloodthorn']}
+      ],
+      note:'Aghs creates a spectral clone that joins Omnislash and deals additional damage. Refresher lets you double Omnislash in one fight — nearly impossible to survive. Bloodthorn silences and amplifies all damage on one target.'
+    },
+    defPhys: {
+      items:['Butterfly (earlier)','Blade Mail','Eye of Skadi'],
+      note:'Rush Butterfly before Daedalus when a fed physical carry is destroying your team. 35% evasion is your best physical mitigation. Blade Mail during Blade Fury reflects damage back. Skadi slows attackers on every hit you land making them kite themselves.',
+      tip:'Blade Fury + Blade Mail is a powerful defensive combo. The moment a physical carry dives you, pop both and their damage reflects back at them while you\'re completely spell immune.'
+    },
+    defMagic: {
+      items:['Black King Bar','Manta Style','Linken\'s Sphere'],
+      note:'Remember that Blade Fury already makes you spell immune — your natural counter to magic is to pop it the moment you\'re targeted. Black King Bar extends that immunity when Blade Fury is on cooldown. Manta Style creates illusions to bait AoE spells. Build BKB when getting stunned and bursted before you can react.'
+    }
+  },
+  dk: {
+    name: 'Dragon Knight',
+    title: 'Davion',
+    role: 'Mid Lane / Offlane · Durable · Objective Destroyer',
+    tagline: 'Level 6 is your on switch. Dragon form wins 1v1s and destroys towers. Never stop pushing.',
+    diff: 'Easy',
+    color: '#C9962C',
+    colorDim: 'rgba(201,150,44,0.12)',
+    colorGlow: 'rgba(201,150,44,0.4)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(180,120,20,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(15,12,5,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/dragon_knight.png',
+    strategy: `Before level 6 you play safe. Use Breathe Fire to push the wave and harass the enemy, stun anyone who overextends with Dragon Tail, and focus on last hits. You won't win many trades pre-6 — be patient. The moment you hit level 6, your mindset flips completely. Dragon Form transforms you into a tanky, high-damage fighter with an AoE slow. Look for a kill immediately after level 6. After a kill, take the mid tower — DK is one of the best tower destroyers in the game. Dragon breath melts towers. Rotate to other lanes with your ult up and take objectives constantly.`,
+    tip: 'Elder Dragon Form is timed — plan your fights so your ult doesn\'t expire mid-combat. Save Dragon Tail stun for when enemies try to run after you\'ve committed to a fight.',
+    farm: `DK has a strong attack animation and decent base damage. Use Breathe Fire to push the wave fast after trading — a fast-pushed wave forces the enemy to last hit under tower. Aim for 55+ last hits by 10 minutes. After every teamfight win, immediately push a tower rather than bouncing around the map. DK can solo Roshan reasonably early (25-30 min) with decent items.`,
+    farmTip: 'DK\'s best farm is towers and Roshan. Dragon breath in Elder Dragon Form deals enormous damage to buildings. Always take objectives after kills.',
+    physBuild: {
+      label:'Physical Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Stout Shield','Tango x2','Quelling Blade']},
+        {name:'Core Spike',items:['Soul Ring','Phase Boots','Blink Dagger']},
+        {name:'Mid (15–30min)',items:['Armlet of Mordiggian','Black King Bar']},
+        {name:'Late (30+min)',items:['Assault Cuirass','Daedalus','Heart of Tarrasque']}
+      ],
+      note:'Armlet gives enormous damage and HP for its cost — a must buy. BKB makes you unstoppable during Dragon Form. Assault Cuirass shreds armor on enemies and buildings. Daedalus crits hit like a truck with DK\'s high base damage.'
+    },
+    magicBuild: {
+      label:'Magic Build (vs Armor-Stacked Teams)',
+      phases:[
+        {name:'Core',items:['Soul Ring','Arcane Boots','Aghanim\'s Scepter']},
+        {name:'Damage',items:['Kaya and Sange','Shiva\'s Guard','Octarine Core']}
+      ],
+      note:'Aghs on DK makes Elder Dragon Form permanent and grants all three dragon types simultaneously. Kaya amplifies Breathe Fire damage significantly. Octarine means more frequent Dragon Tail and Breathe Fire casts.'
+    },
+    defPhys: {
+      items:['Armlet (prioritize)','Assault Cuirass (earlier)','Crimson Guard','Blade Mail'],
+      note:'DK already has one of the highest base armor values in the game. Rush Armlet for the HP boost. Assault Cuirass stacked with your natural armor makes you nearly impossible to physically kill. Blade Mail during Dragon Form forces carries to stop attacking you.',
+      tip:'Armlet toggling — activate when fighting, deactivate to save HP below ~300 HP. It drains 40 HP/sec when active but gives +500 HP and +60 damage. Master this toggle.'
+    },
+    defMagic: {
+      items:['Black King Bar (core)','Hood of Defiance','Pipe of Insight','Lotus Orb'],
+      note:'BKB is already in your standard build — make it your first major purchase after Blink Dagger when facing heavy magic damage. Hood of Defiance gives 30% magic resistance and HP regen. Lotus Orb reflects targeted spells — devastating against Zeus and Lina.'
+    }
+  },
+  sniper: {
+    name: 'Sniper',
+    title: 'Kardel Sharpeye',
+    role: 'Safelane / Mid Carry · Positioning-Dependent',
+    tagline: 'Never be touched. If they can\'t reach you they can\'t kill you. Distance is your armor.',
+    diff: 'Easy',
+    color: '#FF8C00',
+    colorDim: 'rgba(255,140,0,0.12)',
+    colorGlow: 'rgba(255,140,0,0.4)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(180,100,10,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(20,15,5,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/sniper.png',
+    strategy: `Sniper lives or dies by one principle: positioning. You must always be at maximum attack range, always moving backwards when enemies approach, and always behind your team in fights. Use Shrapnel to zone enemies off objectives — drop it on a tower to slow enemies defending it, or on a Roshan attempt. Your passive Headshot procs randomly and ministuns enemies briefly — this interrupts channeled abilities and TPs if you're attacking. Assassinate has extreme range and deals huge burst damage — use it to snipe enemies running away from fights at low HP across the map.`,
+    tip: 'If enemies have a Blink Dagger initiation hero like Axe or Storm Spirit, keep Shrapnel nearby at all times as an escape — it slows anyone chasing you immediately.',
+    farm: `Sniper has great attack range and a fast attack animation — you should be hitting every last hit comfortably. Stay at max range from the enemy at all times. Drop Shrapnel on the enemy creep wave to zone the enemy hero off last hits while you freely farm. Aim for 65+ last hits by 10 minutes. Sniper can farm waves at extreme range — you can hit a creep wave from outside tower range.`,
+    farmTip: 'Shrapnel stacks up to 3 charges. Keep throwing it on waves and camps passively — the 100 DPS per second over 10 seconds adds up significantly.',
+    physBuild: {
+      label:'Physical Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Slippers x2','Quelling Blade','Faerie Fire']},
+        {name:'Core (0–20min)',items:['Power Treads','Witch Blade']},
+        {name:'Mid (20–35min)',items:['Dragon Lance','Hurricane Pike']},
+        {name:'Late (35+min)',items:['Daedalus','Butterfly or MKB']}
+      ],
+      note:'Dragon Lance + Pike extend your attack range even further — enemies can\'t reach you. Daedalus crits from across the screen feel incredible. Buy Monkey King Bar if enemies have evasion, otherwise Butterfly for survivability.'
+    },
+    magicBuild: {
+      label:'Magic Build (Pub Stomp Edition)',
+      phases:[
+        {name:'Core',items:['Power Treads','Dagon 5','Aghanim\'s Scepter']},
+        {name:'Amplification',items:['Refresher Orb','Shiva\'s Guard']}
+      ],
+      note:'Aghs on Sniper gives Assassinate multiple charges and reduces cast time. Dagon 5 one-shots supports. Refresher lets you fire two Assassinates in succession. Fun when stomping but falls off against tanky teams.'
+    },
+    defPhys: {
+      items:['Hurricane Pike (earlier)','Butterfly','Ghost Scepter','Wind Waker'],
+      note:'Hurricane Pike has an active that pushes a melee hero away from you — ideal panic button when a carry dives you. Ghost Scepter makes you immune to physical attacks for 4 seconds. Wind Waker lets you tornado yourself away. The key is creating distance — you die immediately to any physical carry who reaches you.',
+      tip:'If a Juggernaut or PA is targeting you every fight, buy Ghost Scepter immediately and Ghost yourself the moment they Omnislash or blink on you — it cancels their damage.'
+    },
+    defMagic: {
+      items:['Linken\'s Sphere','Manta Style','Black King Bar','Eul\'s Scepter'],
+      note:'Linken\'s blocks one targeted spell — essential if a Zeus or Lina keeps one-shotting you. Manta Style makes it harder to target you specifically in chaotic fights. BKB gives 10 seconds of spell immunity — pop it when you see their combo coming. Eul\'s lets you cyclone yourself out of dangerous channeled abilities.'
+    }
+  },
+  lina: {
+    name: 'Lina',
+    title: 'The Slayer',
+    role: 'Mid Lane · Nuker · Snowball Carry',
+    tagline: 'Land the combo, delete a hero, take their items. Fastest snowball on this list.',
+    diff: 'Medium',
+    color: '#FF4500',
+    colorDim: 'rgba(255,69,0,0.12)',
+    colorGlow: 'rgba(255,69,0,0.4)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(200,60,10,0.12) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(20,5,5,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/lina.png',
+    strategy: `Lina's laning phase is about constant Dragon Slave poke — the spell fires in a line and hits the enemy hero behind their creeps. Keep spamming it on cooldown. Your kill pattern unlocks fully with Eul's Scepter: Eul's → wait for enemy to land → Light Strike Array stun (must be cast as they land) → Dragon Slave → Laguna Blade. This combo deletes almost any hero. After a kill, push the wave immediately and look for another. In teamfights never initiate — wait for your team to engage, then follow up with your combo on the most important target. You're extremely squishy and die instantly if caught.`,
+    tip: 'The Eul\'s timing is the hardest part. Cast Eul\'s on the enemy — they float up for ~2.5 seconds. Cast Light Strike Array JUST BEFORE they land. If timed wrong the stun misses. Practice this in demo mode.',
+    farm: `Dragon Slave clears an entire creep wave in the mid lane from range. Spam it on the wave to push fast, then walk up and trade with the enemy hero. Bottle + rune control is crucial for mana sustain. Lina farms through kills more than any other hero — every hero kill at 15-25 minutes is worth 200-400 gold. After your kill combo, the Fiery Soul attack speed lets you quickly clear the nearby creep wave.`,
+    farmTip: 'Fiery Soul stacks give you massive attack speed after casting spells. After landing your kill combo, use the remaining attack speed to quickly right-click the nearby creep wave dead.',
+    physBuild: {
+      label:'Physical Build (Fiery Soul Right-Click)',
+      phases:[
+        {name:'Core',items:['Phase Boots','Dragon Lance','Hurricane Pike']},
+        {name:'Damage',items:['Daedalus','Butterfly','Satanic']}
+      ],
+      note:'After casting her full spell combo, Fiery Soul gives Lina astronomical attack speed. Cast spells to gain attack speed, then right-click enemies to death. Catches enemies completely off guard. Satanic gives lifesteal for survivability.'
+    },
+    magicBuild: {
+      label:'Magic Build (Standard — Best)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Null Talisman x2','Clarity x2','Faerie Fire']},
+        {name:'Core (0–18min)',items:['Bottle','Arcane Boots','Eul\'s Scepter']},
+        {name:'Mid (18–30min)',items:['Aghanim\'s Scepter','Scythe of Vyse']},
+        {name:'Late (30+min)',items:['Refresher Orb','Octarine Core']}
+      ],
+      note:'Eul\'s is the combo enabler — buy it third every game. Aghs turns Laguna Blade into chain lightning. Scythe hexes targets before your combo so they can\'t react. Refresher = double everything = team wipe.'
+    },
+    defPhys: {
+      items:['Eul\'s (self-cyclone)','Ghost Scepter','Wind Waker','Bloodstone'],
+      note:'Lina is extremely squishy — a fed physical carry will kill her in 2-3 hits. Ghost Scepter\'s 4 second physical immunity is your best panic button. Wind Waker lets you cyclone yourself to escape dives. Bloodstone gives you a massive HP pool. Position further back in fights.',
+      tip:'In games with a fed Phantom Assassin or Juggernaut, build Ghost Scepter immediately after Eul\'s. It costs only 1500 gold and prevents you from being instantly deleted.'
+    },
+    defMagic: {
+      items:['Linken\'s Sphere','Manta Style','Eul\'s Scepter','BKB'],
+      note:'Ironically Lina\'s biggest threat is other burst mages since she has low HP. Linken\'s blocks one targeted spell every 14 seconds. Manta creates illusions to bait spell usage. Eul\'s lets you cyclone yourself or an enemy nuker to buy time. Build BKB if getting caught by multiple stuns before you can react.'
+    }
+  },
+  lion: {
+    name: 'Lion',
+    title: 'Demon Witch',
+    role: 'Support · Disabler · Kill Setup',
+    tagline: 'Two disables and a global nuke. Keep enemies locked, let your team do the rest.',
+    diff: 'Easy',
+    color: '#9B59B6',
+    colorDim: 'rgba(155,89,182,0.12)',
+    colorGlow: 'rgba(155,89,182,0.35)',
+    bgColor: 'radial-gradient(ellipse 60% 80% at 80% 40%, rgba(100,40,160,0.12) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(10,5,20,0.7) 0%, transparent 70%)',
+    img: 'https://cdn.dota2.com/apps/dota2/images/dota_react/heroes/lion.png',
+    strategy: `Lion is a support — your job is to enable kills, not get them. You have Earth Spike (AoE stun), Hex (turns an enemy into a harmless creature), Mana Drain (drains enemy mana), and Finger of Death (massive single-target nuke that permanently gains damage for every hero kill). In lane, focus on keeping your carry alive and landing spike + hex combos when the enemy overextends. In teamfights, use Earth Spike on the biggest threat, Hex the second biggest, and Finger the squishiest target. Buy wards. Buy Courier. These aren't optional — they directly win games.`,
+    tip: 'Finger of Death permanently gains 30 damage for every hero kill it scores — even assists. Land Finger on the kill to make your ultimate progressively stronger all game.',
+    farm: `As a support you share farm with your carry — don't take last hits from them. Your gold comes from kill assists, pulling neutral camps, and support income over time. Pulling the small neutral camp at 1:40 denies it from the enemy and brings it to the lane for your carry to last hit. After 10 minutes start roaming — every kill assist gives you bounty gold.`,
+    farmTip: 'Mana Drain is excellent against mana-dependent heroes. Keep draining their mana in lane to prevent them from using abilities — a Zeus or Lina with no mana is completely harmless.',
+    physBuild: {
+      label:'Physical Build',
+      phases:[
+        {name:'Note',items:['No Viable Physical Build']}
+      ],
+      note:'Lion has almost no attack damage or steroid. There is genuinely no physical build worth running. If you\'re far ahead, Dagon 5 into Finger of Death still functions as magic burst. Always run the magic build — it\'s the only path to impact.'
+    },
+    magicBuild: {
+      label:'Magic Build (Standard — Only Build)',
+      phases:[
+        {name:'Starting',items:['Tango x2','Clarity x3','Observer Ward','Courier']},
+        {name:'Core (0–15min)',items:['Arcane Boots','Blink Dagger']},
+        {name:'Mid (15–30min)',items:['Aghanim\'s Scepter','Scythe of Vyse']},
+        {name:'Late (30+min)',items:['Refresher Orb','Octarine Core']}
+      ],
+      note:'Blink Dagger lets you jump in, stun, hex, and Finger without being in range to get killed first. Aghs makes Finger an AoE explosion. Refresher = double stun, double hex, double Finger. The enemy team cannot function.'
+    },
+    defPhys: {
+      items:['Glimmer Cape','Ghost Scepter','Force Staff','Aether Lens'],
+      note:'As a support with low HP, physical carries kill you in one rotation. Glimmer Cape makes you invisible and gives magic resistance — great for escaping. Ghost Scepter makes you immune to physical attacks for 4 seconds. Force Staff pushes you away from anyone diving you. Aether Lens extends your cast range so you can stun and hex from safer distances.',
+      tip:'Position is everything as Lion. Stay completely behind your carry. If you\'re close enough for a physical carry to reach you, you\'ve already made a mistake.'
+    },
+    defMagic: {
+      items:['Hood of Defiance','Pipe of Insight','Glimmer Cape','Aether Lens'],
+      note:'Hood of Defiance gives 30% magic resistance plus HP regen — critical in magic-heavy games. Upgrade to Pipe of Insight for a team-wide magic shield that blocks 400 magic damage for every allied hero. This single item flips magic-heavy teamfights in your favor. Glimmer Cape makes you and an ally invisible and grants magic resistance simultaneously.'
+    }
+  }
+};
+
+// ═══════════════════ STATE ═══════════════════
+let currentHero = 'zeus';
+let activeTabMap = {};
+Object.keys(HEROES).forEach(h => activeTabMap[h] = 'strategy');
+
+// ═══════════════════ BUILD HTML ═══════════════════
+// Item display name -> Dota 2 CDN image filename
+const ITEM_IMGS = {
+  "Tango":"`tango`","Tango x2":"`tango`","Clarity":"`clarity`","Clarity x1":"`clarity`",
+  "Clarity x2":"`clarity`","Clarity x3":"`clarity`","Faerie Fire":"`faerie_fire`",
+  "Observer Ward":"`ward_observer`","Courier":"`courier`",
+  "Null Talisman":"`null_talisman`","Null Talisman x2":"`null_talisman`",
+  "Slippers x2":"`slippers`","Quelling Blade":"`quelling_blade`",
+  "Stout Shield":"`stout_shield`","Bottle":"`bottle`","Soul Ring":"`soul_ring`",
+  "Arcane Boots":"`arcane_boots`","Phase Boots":"`phase_boots`",
+  "Power Treads":"`power_treads`","Tranquil Boots":"`tranquil_boots`",
+  "Dragon Lance":"`dragon_lance`","Witch Blade":"`witch_blade`",
+  "Veil of Discord":"`veil_of_discord`","Blink Dagger":"`blink`",
+  "Ghost Scepter":"`ghost`","Force Staff":"`force_staff`",
+  "Aether Lens":"`aether_lens`","Glimmer Cape":"`glimmer_cape`",
+  "Blade Mail":"`blade_mail`","Vanguard":"`vanguard`","Vanguard (earlier)":"`vanguard`",
+  "Hood of Defiance":"`hood_of_defiance`",
+  "Kaya and Sange":"`kaya_and_sange`","Kaya and Sange (earlier)":"`kaya_and_sange`",
+  "Kaya":"`kaya`","Battlefury":"`battlefury`","Diffusal Blade":"`diffusal_blade`",
+  "Armlet of Mordiggian":"`armlet`","Armlet (prioritize)":"`armlet`",
+  "Hurricane Pike":"`hurricane_pike`","Hurricane Pike (earlier)":"`hurricane_pike`",
+  "Crimson Guard":"`crimson_guard`","Bloodstone":"`bloodstone`",
+  "Eul\'s Scepter":"`euls_scepter_of_divinity`","Eye of Skadi":"`skadi`",
+  "Lotus Orb":"`lotus_orb`","Shiva\'s Guard":"`shivas_guard`",
+  "Pipe of Insight":"`pipe`","Manta Style":"`manta`",
+  "Linken\'s Sphere":"`sphere`","Black King Bar":"`black_king_bar`",
+  "Black King Bar (core)":"`black_king_bar`","BKB":"`black_king_bar`",
+  "Wind Waker":"`wind_waker`","Aghanim\'s Scepter":"`aghanims_scepter`",
+  "Refresher Orb":"`refresher`","Octarine Core":"`octarine_core`",
+  "Butterfly":"`butterfly`","Butterfly (earlier)":"`butterfly`",
+  "Butterfly or MKB":"`butterfly`","Daedalus":"`greater_crit`",
+  "Abyssal Blade":"`abyssal_blade`","Assault Cuirass":"`assault`",
+  "Assault Cuirass (earlier)":"`assault`","Heart of Tarrasque":"`heart`",
+  "Satanic":"`satanic`","Bloodthorn":"`bloodthorn`","Scythe of Vyse":"`sheepstick`",
+  "Dagon 5":"`dagon_5`","Ethereal Blade":"`ethereal_blade`",
+};
+
+const ITEM_CDN = 'https://cdn.dota2.com/apps/dota2/images/dota_react/items/';
+
+function getItemImg(name) {
+  const key = name.replace(/\\/g, "'");
+  const raw = ITEM_IMGS[key] || ITEM_IMGS[name] || '';
+  if (!raw) return '';
+  const filename = raw.replace(/`/g,'');
+  return `<img src="${ITEM_CDN}${filename}.png" alt="" onerror="this.style.display='none'">`;
+}
+
+function buildItems(items, cardClass) {
+  return items.map(i => `<span class="item">${getItemImg(i)}${i}</span>`).join('');
+}
+
+function buildPhases(phases, cardClass) {
+  return phases.map(p => `
+    <div class="phase">
+      <div class="phase-name">${p.name}</div>
+      <div class="items">${buildItems(p.items, cardClass)}</div>
+    </div>
+  `).join('');
+}
+
+function buildHeroPanel(key) {
+  const h = HEROES[key];
+  const activeTab = activeTabMap[key] || 'strategy';
+  return `
+    <div class="scene-content" id="content-${key}">
+      <div class="hero-intro">
+        <div class="hero-eyebrow">${h.role}</div>
+        <div class="hero-name">${h.name}</div>
+        <div class="hero-tagline">"${h.tagline}"</div>
+        <div class="hero-badges">
+          <span class="hbadge diff-${h.diff === 'Easy' ? 'easy' : 'med'}">${h.diff}</span>
+          <span class="hbadge">${h.title}</span>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab ${activeTab==='strategy'?'active':''}" onclick="switchTab('${key}','strategy',this)">Strategy</div>
+        <div class="tab ${activeTab==='farm'?'active':''}" onclick="switchTab('${key}','farm',this)">Farming</div>
+        <div class="tab ${activeTab==='builds'?'active':''}" onclick="switchTab('${key}','builds',this)">Builds</div>
+        <div class="tab ${activeTab==='defense'?'active':''}" onclick="switchTab('${key}','defense',this)">Defense</div>
+      </div>
+
+      <!-- STRATEGY TAB -->
+      <div class="tab-panel ${activeTab==='strategy'?'active':''}" id="tab-${key}-strategy">
+        <div class="cards-grid single" style="margin-top:16px">
+          <div class="card">
+            <div class="card-type">⚔ Game Strategy</div>
+            <p>${h.strategy}</p>
+            <div class="tip"><span class="tip-mark">▶</span> ${h.tip}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FARM TAB -->
+      <div class="tab-panel ${activeTab==='farm'?'active':''}" id="tab-${key}-farm">
+        <div class="cards-grid single" style="margin-top:16px">
+          <div class="card farm">
+            <div class="card-type">💰 Farming Method</div>
+            <p>${h.farm}</p>
+            <div class="tip"><span class="tip-mark">▶</span> ${h.farmTip}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUILDS TAB -->
+      <div class="tab-panel ${activeTab==='builds'?'active':''}" id="tab-${key}-builds">
+        <div class="cards-grid" style="margin-top:16px">
+          <div class="card phys">
+            <div class="card-type">⚒ ${h.physBuild.label}</div>
+            ${buildPhases(h.physBuild.phases, 'phys')}
+            <div class="build-note">${h.physBuild.note}</div>
+          </div>
+          <div class="card magic">
+            <div class="card-type">✨ ${h.magicBuild.label}</div>
+            ${buildPhases(h.magicBuild.phases, 'magic')}
+            <div class="build-note">${h.magicBuild.note}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEFENSE TAB -->
+      <div class="tab-panel ${activeTab==='defense'?'active':''}" id="tab-${key}-defense">
+        <div class="cards-grid" style="margin-top:16px">
+          <div class="card def-phys">
+            <div class="card-type">🛡 vs Heavy Physical Damage</div>
+            <div class="phase">
+              <div class="phase-name">Priority Adjustments</div>
+              <div class="items">${h.defPhys.items.map(i=>`<span class="item">${i}</span>`).join('')}</div>
+            </div>
+            <div class="build-note">${h.defPhys.note}</div>
+            ${h.defPhys.tip ? `<div class="tip"><span class="tip-mark">▶</span> ${h.defPhys.tip}</div>` : ''}
+          </div>
+          <div class="card def-magic">
+            <div class="card-type">🔮 vs Heavy Magic Damage</div>
+            <div class="phase">
+              <div class="phase-name">Priority Adjustments</div>
+              <div class="items">${h.defMagic.items.map(i=>`<span class="item">${i}</span>`).join('')}</div>
+            </div>
+            <div class="build-note">${h.defMagic.note}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════ RENDER ═══════════════════
+function renderAll() {
+  const app = document.getElementById('app');
+  app.innerHTML = Object.keys(HEROES).map(key => `
+    <div class="hero-scene ${key === currentHero ? 'active' : ''}" id="scene-${key}">
+      ${buildHeroPanel(key)}
+    </div>
+  `).join('');
+  
+  // Animate initial content in
+  setTimeout(() => {
+    const content = document.querySelector(`#content-${currentHero}`);
+    if (content) content.classList.add('visible');
+    document.getElementById('scene-bg-img').classList.add('visible');
+    document.getElementById('scene-bg-color').classList.add('visible');
+  }, 100);
+}
+
+// ═══════════════════ SWITCH HERO ═══════════════════
+function switchHero(key) {
+  if (key === currentHero) return;
+  
+  const h = HEROES[key];
+  const oldContent = document.querySelector(`#content-${currentHero}`);
+  
+  // Animate out
+  if (oldContent) {
+    gsap.to(oldContent, { opacity: 0, x: -30, duration: 0.3, ease: 'power2.in', onComplete: () => {
+      document.getElementById(`scene-${currentHero}`).classList.remove('active');
+      currentHero = key;
+      
+      // Update bg
+      updateBackground(key);
+      
+      // Show new scene
+      document.getElementById(`scene-${key}`).classList.add('active');
+      const newContent = document.querySelector(`#content-${key}`);
+      if (newContent) {
+        newContent.classList.remove('visible');
+        newContent.style.opacity = '0';
+        newContent.style.transform = 'translateX(30px)';
+        requestAnimationFrame(() => {
+          gsap.to(newContent, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' });
+        });
+      }
+    }});
+  }
+  
+  // Update hero bar
+  document.querySelectorAll('.hero-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-hero="${key}"]`).classList.add('active');
+  
+  // Update bar hero name
+  document.getElementById('bar-hero-name').textContent = h.name;
+  
+  // Update CSS vars
+  document.documentElement.style.setProperty('--hero-color', h.color);
+  document.documentElement.style.setProperty('--hero-color-dim', h.colorDim);
+  document.documentElement.style.setProperty('--hero-color-glow', h.colorGlow);
+  
+  // Update particle color
+  updateParticles(h.color);
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateBackground(key) {
+  const h = HEROES[key];
+  const img = document.getElementById('scene-bg-img');
+  const color = document.getElementById('scene-bg-color');
+  
+  img.classList.remove('visible');
+  color.classList.remove('visible');
+  
+  setTimeout(() => {
+    img.onload = () => {
+      img.classList.add('visible');
+    };
+    img.onerror = () => {
+      // Image failed, just show color bg
+      console.warn('Hero image failed to load:', h.img);
+    };
+    img.src = h.img;
+    color.style.background = h.bgColor;
+    color.classList.add('visible');
+  }, 300);
+}
+
+function switchTab(heroKey, tabName, el) {
+  activeTabMap[heroKey] = tabName;
+  
+  // Update tab active states
+  const tabs = el.closest('.tabs').querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  
+  // Update panel visibility
+  const scene = document.getElementById(`scene-${heroKey}`);
+  scene.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(`tab-${heroKey}-${tabName}`);
+  if (panel) {
+    panel.classList.add('active');
+    gsap.fromTo(panel, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+  }
+}
+
+// ═══════════════════ PARTICLES ═══════════════════
+let particles = [];
+let particleColor = [255, 215, 0];
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [parseInt(result[1],16), parseInt(result[2],16), parseInt(result[3],16)] : [255,215,0];
+}
+
+function updateParticles(hex) {
+  particleColor = hexToRgb(hex);
+}
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 1.5 + 0.3;
+    this.speedY = -(Math.random() * 0.4 + 0.1);
+    this.speedX = (Math.random() - 0.5) * 0.3;
+    this.opacity = Math.random() * 0.6 + 0.1;
+    this.life = 0;
+    this.maxLife = Math.random() * 200 + 100;
+  }
+  update() {
+    this.y += this.speedY;
+    this.x += this.speedX;
+    this.life++;
+    if (this.y < -10 || this.life > this.maxLife) this.reset();
+  }
+  draw() {
+    const [r,g,b] = particleColor;
+    const fade = this.life < 20 ? this.life/20 : (this.life > this.maxLife - 20 ? (this.maxLife - this.life)/20 : 1);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${this.opacity * fade})`;
+    ctx.fill();
+  }
+}
+
+// Init 80 particles
+for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animateParticles);
+}
+
+// ═══════════════════ CURSOR ═══════════════════
+// Cursor is pure CSS - no JS needed
+
+// ═══════════════════ LOADER ═══════════════════
+function runLoader() {
+  const lbar = document.getElementById('lbar');
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 15 + 5;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      setTimeout(() => {
+        gsap.to('#loader', { opacity: 0, duration: 0.6, ease: 'power2.in', onComplete: () => {
+          document.getElementById('loader').style.display = 'none';
+          // Animate bar logo
+          gsap.from('#hero-bar', { y: -90, duration: 0.7, ease: 'power3.out', delay: 0.1 });
+          gsap.from('.scroll-hint', { opacity: 0, duration: 1, delay: 1.5 });
+        }});
+      }, 400);
+    }
+    lbar.style.width = progress + '%';
+  }, 80);
+}
+
+// ═══════════════════ SCROLL HINT ═══════════════════
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 100) {
+    gsap.to('#scrollHint', { opacity: 0, duration: 0.3 });
+  } else {
+    gsap.to('#scrollHint', { opacity: 0.5, duration: 0.3 });
+  }
+});
+
+// ═══════════════════ INIT ═══════════════════
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Set initial background
+const initHero = HEROES[currentHero];
+document.getElementById('scene-bg-img').src = initHero.img;
+document.getElementById('scene-bg-color').style.background = initHero.bgColor;
+document.documentElement.style.setProperty('--hero-color', initHero.color);
+document.documentElement.style.setProperty('--hero-color-dim', initHero.colorDim);
+document.documentElement.style.setProperty('--hero-color-glow', initHero.colorGlow);
+document.getElementById('bar-hero-name').textContent = initHero.name;
+
+renderAll();
+animateParticles();
+runLoader();
+</script>
+</body>
+</html>
